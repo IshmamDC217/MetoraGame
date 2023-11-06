@@ -1,126 +1,278 @@
-import kaboom from "kaboom";
-
-// Start a kaboom game
 kaboom({
-	// Scale the whole game up
-	scale: 4,
-	// Set the default font
-	font: "monospace",
+	width: 1280,
+	height: 720
 })
 
-// Loading a multi-frame sprite
-loadSprite("bean", "/sprites/bean.png", {
-	// The image contains 9 frames layed out horizontally, slice it into individual frames
-	sliceX: 9,
-	// Define animations
-	anims: {
-		"idle": {
-			// Starts from frame 0, ends at frame 3
-			from: 0,
-			to: 3,
-			// Frame per second
-			speed: 5,
-			loop: true,
-		},
-		"run": {
-			from: 4,
-			to: 7,
-			speed: 10,
-			loop: true,
-		},
-		// This animation only has 1 frame
-		"jump": 8,
+loadSpriteAtlas('sprites/tileset.png', {
+	'platform-left': {
+		x: 82, y: 64, width: 16,
+		height: 8
 	},
+	'platform-middle': {
+		x: 112,
+		y: 64,
+		width: 16,
+		height: 8
+	},
+	'platform-right': {
+		x: 142,
+		y: 64,
+		width: 16,
+		height: 8
+	},
+	'smaller-tree': {
+		x: 0,
+		y: 80,
+		width: 60,
+		height: 65
+	},
+	'bigger-tree': {
+		x: 170,
+		y: 10,
+		width: 115,
+		height: 200
+	},
+	'ground': {
+		x: 80,
+		y: 144,
+		width: 16,
+		height: 16
+	},
+	'ground-deep': {
+		x: 0,
+		y: 144,
+		width: 16,
+		height: 16
+	}
 })
 
-const SPEED = 120
-const JUMP_FORCE = 240
+loadSprite('background-0', 'sprites/background_0.png')
+loadSprite('background-1', 'sprites/background_1.png')
+loadSprite('background-2', 'sprites/background_2.png')
+loadSprite('idle-sprite', 'sprites/Idle.png', {
+	sliceX: 8,
+	sliceY: 1,
+	anims: { 'idle-anim': { from: 0, to: 7, loop: true } }
+})
+loadSprite('run-sprite', 'sprites/Run.png', {
+	sliceX: 8,
+	sliceY: 1,
+	anims: { 'run-anim': { from: 0, to: 7, loop: true } }
+})
 
-setGravity(640)
+loadSprite('jump-sprite', 'sprites/Jump.png', {
+	sliceX: 8,
+	sliceY: 1,
+	anims: { 'jump-anim': { from: 0, to: 7, loop: true } }
+})
 
-// Add our player character
-const player = add([
-	sprite("bean"),
-	pos(center()),
-	anchor("center"),
-	area(),
-	body(),
-])
+loadSprite('fall-sprite', 'sprites/Jump.png', {
+	sliceX: 8,
+	sliceY: 1,
+	anims: { 'fall-anim': { from: 0, to: 7, loop: true } }
+})
 
-// .play is provided by sprite() component, it starts playing the specified animation (the animation information of "idle" is defined above in loadSprite)
-player.play("idle")
+setGravity(1000)
 
-// Add a platform
 add([
-	rect(width(), 24),
-	area(),
-	outline(1),
-	pos(0, height() - 24),
-	body({ isStatic: true }),
+	sprite('background-0'),
+	fixed(),
+	scale(4)
 ])
 
-// Switch to "idle" or "run" animation when player hits ground
-player.onGround(() => {
-	if (!isKeyDown("left") && !isKeyDown("right")) {
-		player.play("idle")
-	} else {
-		player.play("run")
+add([
+	sprite('background-0'),
+	fixed(),
+	pos(1000, 0),
+	scale(4),
+]).flipX = true
+
+add([
+	sprite('background-1'),
+	fixed(),
+	scale(4)
+])
+
+add([
+	sprite('background-1'),
+	fixed(),
+	pos(1000, 0),
+	scale(4),
+]).flipX = true
+
+add([
+	sprite('background-2'),
+	fixed(),
+	scale(4)
+])
+
+add([
+	sprite('background-2'),
+	fixed(),
+	pos(1000, 0),
+	scale(4),
+]).flipX = true
+
+const tree = add([
+	sprite('smaller-tree'),
+	scale(4),
+	pos(40, 190)
+])
+
+const map = addLevel([
+	'5                                                     5',
+	'5                                                     5',
+	'5   012                  012                  012     5',
+	'5        012                                          5',
+	'5                                   012               5',
+	'5   012              012                              5',
+	'5             012                                     5',
+	' 333333                      012           012        5',
+	' 444444                                               5',
+	' 444444   012                                         5',
+	' 33333333333333333333333333333333333333333333333333333 ',
+	' 44444444444444444444444444444444444444444444444444444 '
+], {
+	tileWidth: 16,
+	tileHeight: 16,
+	tiles: {
+		0: () => [
+			sprite('platform-left'),
+			area(),
+			body({ isStatic: true })
+		],
+		1: () => [
+			sprite('platform-middle'),
+			area(),
+			body({ isStatic: true })
+		],
+		2: () => [
+			sprite('platform-right'),
+			area(),
+			body({ isStatic: true })
+		],
+		3: () => [
+			sprite('ground'),
+			area(),
+			body({ isStatic: true })
+		],
+		4: () => [
+			sprite('ground-deep'),
+			area(),
+			body({ isStatic: true })
+		],
+		5: () => [
+			rect(16, 16),
+			opacity(0),
+			area(),
+			body({ isStatic: true })
+		]
 	}
 })
 
-player.onAnimEnd((anim) => {
-	if (anim === "idle") {
-		// You can also register an event that runs when certain anim ends
+map.use(scale(4))
+
+const biggerTree = add([
+	sprite('bigger-tree'),
+	scale(4),
+	pos(900, 104)
+])
+
+const player = add([
+	sprite('idle-sprite'),
+	scale(1),
+	area({ shape: new Rect(vec2(0), 32, 32), offset: vec2(0, 32) }),
+	anchor('center'),
+	body(),
+	pos(900, 10),
+	{
+		speed: 500,
+		previousHeight: null,
+		heightDelta: 0,
+		direction: 'right'
 	}
+])
+
+player.play('idle-anim')
+
+onKeyDown('right', () => {
+	if (player.curAnim() !== 'run-anim' && player.isGrounded()) {
+		player.use(sprite('run-sprite'))
+		player.play('run-anim')
+	}
+
+	if (player.direction !== 'right') player.direction = 'right'
+
+	player.move(player.speed, 0)
 })
 
-onKeyPress("space", () => {
+onKeyRelease('right', () => {
+	player.use(sprite('idle-sprite'))
+	player.play('idle-anim')
+})
+
+onKeyDown('left', () => {
+	if (player.curAnim() !== 'run-anim' && player.isGrounded()) {
+		player.use(sprite('run-sprite'))
+		player.play('run-anim')
+	}
+
+	if (player.direction !== 'left') player.direction = 'left'
+
+	player.move(-player.speed, 0)
+})
+
+onKeyRelease('left', () => {
+	player.use(sprite('idle-sprite'))
+	player.play('idle-anim')
+})
+
+onKeyPress('up', () => {
 	if (player.isGrounded()) {
-		player.jump(JUMP_FORCE)
-		player.play("jump")
+		player.jump()
 	}
 })
 
-onKeyDown("left", () => {
-	player.move(-SPEED, 0)
-	player.flipX = true
-	// .play() will reset to the first frame of the anim, so we want to make sure it only runs when the current animation is not "run"
-	if (player.isGrounded() && player.curAnim() !== "run") {
-		player.play("run")
+camScale(1.5)
+
+onUpdate(() => {
+
+	if (player.previousHeight) {
+		player.heightDelta = player.previousHeight - player.pos.y
+	}
+
+	player.previousHeight = player.pos.y
+
+	const cameraLeftBound = 550
+	const cameraRightBound = 3000
+	const cameraVerticalOffset = player.pos.y - 100
+
+	if (cameraLeftBound > player.pos.x) {
+		camPos(cameraLeftBound, cameraVerticalOffset)
+	} else if (cameraRightBound < player.pos.x) {
+		camPos(cameraRightBound, cameraVerticalOffset)
+	} else {
+		camPos(player.pos.x, cameraVerticalOffset)
+	}
+
+	if (player.curAnim() !== 'run-anim' && player.isGrounded()) {
+		player.use(sprite('idle-sprite'))
+		player.play('idle-anim')
+	}
+
+	if (player.curAnim() !== 'jump-anim' && !player.isGrounded() && player.heightDelta > 0) {
+		player.use(sprite('jump-sprite'))
+		player.play('jump-anim')
+	}
+
+	if (player.curAnim() !== 'fall-anim' && !player.isGrounded() && player.heightDelta < 0) {
+		player.use(sprite('fall-sprite'))
+		player.play('fall-anim')
+	}
+
+	if (player.direction === 'left') {
+		player.flipX = true
+	} else {
+		player.flipX = false
 	}
 })
-
-onKeyDown("right", () => {
-	player.move(SPEED, 0)
-	player.flipX = false
-	if (player.isGrounded() && player.curAnim() !== "run") {
-		player.play("run")
-	}
-})
-
-;["left", "right"].forEach((key) => {
-	onKeyRelease(key, () => {
-	// Only reset to "idle" if player is not holding any of these keys
-		if (player.isGrounded() && !isKeyDown("left") && !isKeyDown("right")) {
-			player.play("idle")
-		}
-	})
-})
-
-const getInfo = () => `
-Anim: ${player.curAnim()}
-Frame: ${player.frame}
-`.trim()
-
-// Add some text to show the current animation
-const label = add([
-	text(getInfo(), { size: 12 }),
-	color(0, 0, 0),
-	pos(4),
-])
-
-label.onUpdate(() => {
-	label.text = getInfo()
-})
-
-// Check out https://kaboomjs.com#SpriteComp for everything sprite() provides
