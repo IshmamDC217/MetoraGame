@@ -1,1 +1,1 @@
-First Game on js. The intent is to create a game based on my band's theme which is based off of a lore created by our frontman, Dylan Tann 
+First Game using JavaScript. The intent is to create a game based on my band's theme. Our theme is video game like with a bunch of prog elements but the band revolves around a lore created by our frontman, Dylan Tann. The intent of this game is to almost create Hollow knight but in the style of Metora Cliffs 
